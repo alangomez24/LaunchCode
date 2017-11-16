@@ -1,0 +1,177 @@
+import pandas
+from pandas import DataFrame
+import matplotlib
+from matplotlib import pyplot
+import math
+import numpy
+from math import cos
+from math import sqrt
+from math import pi
+from math import atan
+from math import sin
+from math import exp
+
+
+class Algorithm:
+    buy_count = 0
+    short_count = 0
+    sell_count = 0
+    cover_count = 0
+
+    def minimal_core(self, feature_1_data, feature_2_data, feature_3_data, feature_4_data, simulator, index):
+        if feature_1_data[index] > -.0005 and feature_2_data[index] > -.001 and feature_3_data[index] < 0.05 and feature_4_data[index] < -.1:
+            if simulator.inventory == -1:
+                simulator.clearinventory(index)
+                simulator.buy(index)
+                self.buy_count = self.buy_count + 1
+            elif simulator.inventory == 0:
+                simulator.buy(index) # swap out with if subsequent bar low lower than current bar
+                self.buy_count = self.buy_count + 1
+        elif feature_1_data[index] < .0005 and feature_2_data[index] < .0015 and feature_3_data[index] > -.05 and feature_4_data[index] > .1:
+            if simulator.inventory == 1:
+                simulator.clearinventory(index)
+                simulator.short(index)
+                self.short_count = self.short_count +1
+            elif simulator.inventory == 0:
+                simulator.short(index)     # swap out with if subsequent bar high higher than current bar
+                self.short_count = self.short_count + 1
+        elif Simulator1.feature_3_data[index] > .35 and Simulator1.feature_4_data[index] > 0.25:
+            if simulator.inventory == 1:
+                simulator.clearinventory(index)
+                self.sell_count = self.sell_count + 1
+        elif Simulator1.feature_3_data[index] < -.5 and Simulator1.feature_4_data[index] < -.3:
+            if simulator.inventory == -1:
+                simulator.clearinventory(index)
+                self.cover_count = self.cover_count + 1
+
+
+class Simulator:
+
+
+
+    inventory = 0
+    bank = [0]
+    purchasedprice = 0
+    shortprice = 0
+    size = 1
+    profit_array = [0]
+    prices = []
+    lows = []
+    highs = []
+    feature_1_data = []
+    feature_2_data = []
+    feature_3_data = []
+    feature_4_data = []
+    feature_5_data = []
+    threshold = int
+    setting = float
+    buy_1 = []
+    buy_2 = []
+    buy_5 = []
+    buy_10 = []
+    buy_20 = []
+    buy_60 = []
+    trades = 0
+    notrades = 0
+
+    def buy(self, n):
+        self.purchasedprice = (self.prices[n])
+        self.inventory = self.size
+
+
+    def short(self, n):
+        self.shortprice = self.prices[n]
+        self.inventory = -self.size
+
+
+    def clearinventory(self, n):
+        if self.inventory == self.size:
+            self.bank.append(self.bank[-1] + ((self.prices[int(n)] - (self.purchasedprice)) * 50))
+            self.inventory = 0
+        elif self.inventory == -self.size:
+            self.bank.append(self.bank[-1] + (((self.shortprice) - self.prices[int(n)]) * 50))
+            self.inventory = 0
+
+
+    def min_core_sim(self, algo, simulator, inventory_manager):
+        self.bank = [0]
+        self.inventory = 0
+        for n in range(0, len(self.prices)):
+            inventory_manager.inventory_status_check(Simulator1, n)
+            algo.minimal_core(self.feature_1_data, self.feature_2_data, self.feature_3_data, self.feature_4_data, simulator, n)
+
+class inventory_manager:
+    def inventory_status_check(self, simulator, n):
+        if simulator.inventory == 1:
+            if (simulator.prices[n] - simulator.purchasedprice) >= 3:
+                simulator.clearinventory(n)
+            elif (simulator.prices[n] - simulator.purchasedprice) <= -2.5:
+                simulator.clearinventory(n)
+        elif simulator.inventory == -1:
+            if (simulator.shortprice - simulator.prices[n]) >= 6:
+                simulator.clearinventory(n)
+            elif (simulator.shortprice - simulator.prices[n]) <= -2.5:
+                simulator.clearinventory(n)
+
+
+
+Algo1 = Algorithm()
+Simulator1 = Simulator()
+Inventory_manager1 = inventory_manager()
+
+feature_data = pandas.read_csv('/Users/gomez204/Desktop/Trading System Development/Differential Phase System/current_best_and_data (do not edit)/rdataframe.txt')
+print('feature database loaded successfully')
+print('length of feature database = ' + str(len(feature_data)))
+
+Simulator1.highs = feature_data['highs']
+Simulator1.highs = Simulator1.highs.tolist()
+print('highs assigned to simulator')
+print('highs data check: ' + str(Simulator1.highs[200]))
+
+Simulator1.lows = feature_data['lows']
+Simulator1.lows = Simulator1.lows.tolist()
+print('lows assigned to simulator')
+print('lows data check: ' + str(Simulator1.lows[200]))
+
+Simulator1.prices = feature_data['prices']
+Simulator1.prices = Simulator1.prices.tolist()
+print('prices assigned to Simulator')
+print('price data check: ' + str(Simulator1.prices[200]))
+
+Simulator1.feature_1_data = feature_data['dphase 30']
+Simulator1.feature_1_data = Simulator1.feature_1_data.tolist()
+print('feature data 1 assigned')
+print('dphase 30 data check ' + str(Simulator1.feature_1_data[200]))
+
+Simulator1.feature_2_data = feature_data['dphase 40']
+Simulator1.feature_2_data = Simulator1.feature_2_data.tolist()
+print('feature data 2 assigned')
+print('feature data 2 check: ' + str(Simulator1.feature_2_data[200]))
+
+Simulator1.feature_3_data = feature_data['bandpass10']
+Simulator1.feature_3_data = Simulator1.feature_3_data.tolist()
+print('feature data 3 assigned')
+print('feature data 3 check: ' + str(Simulator1.feature_3_data[200]))
+
+
+
+Simulator1.feature_4_data = feature_data['twopolehighpass10']
+Simulator1.feature_4_data = Simulator1.feature_4_data.tolist()
+print('feature data 4 assigned')
+print('feature data 4 check: ' + str(Simulator1.feature_4_data[200]))
+
+
+print('initializing sim')
+Simulator1.min_core_sim(Algo1, Simulator1, Inventory_manager1)
+print('plotting results')
+
+print('# buys: ' + str(Algo1.buy_count))
+print('# shorts: ' + str(Algo1.short_count))
+print('# covers: ' + str(Algo1.cover_count))
+print('# sells: ' + str(Algo1.sell_count))
+print('# trades: ' + str(Simulator1.trades))
+print('# notrades: ' + str(Simulator1.notrades))
+
+
+pyplot.plot(Simulator1.bank)
+pyplot.show()
